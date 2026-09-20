@@ -1,16 +1,13 @@
 import requests
 import time
-import os
-from datetime import datetime, timedelta
 
-# --- CONFIGURAZIONE TEST ---
-ID_UTENTE = os.environ.get("ID_UTENTE", "70750")
+# --- CONFIGURAZIONE TEST A PROVA DI BOMBA ---
+# Inseriamo i dati fissi senza usare variabili dinamiche o GitHub Secrets
+ID_UTENTE = "70750"
+data_target = "20260926"  # Il sabato che avevi intercettato originariamente
 ORARIO_DESIDERATO = "10:00"
+# --------------------------------------------
 
-data_target = (datetime.now() + timedelta(days=1)).strftime("%Y%m%d")
-# ---------------------------
-
-# Mettiamo TUTTI gli headers originali per aggirare i blocchi
 headers = {
     "Host": "appyfit.it",
     "Connection": "keep-alive",
@@ -23,23 +20,23 @@ headers = {
 }
 
 def prenota_piscina_test():
-    print(f"🛠 TEST: Cerco i corsi per {data_target} alle {ORARIO_DESIDERATO}...")
+    print(f"🛠 TEST: Cerco i corsi per il {data_target} alle {ORARIO_DESIDERATO}...")
     timestamp_lista = int(time.time() * 1000)
+    
+    # Costruiamo l'URL esattamente identico a quello che l'app aveva generato
     url_lista = f"https://appyfit.it/Api/prenota/corso/?IDCS=86&idU={ID_UTENTE}&idcategoria=12&dataDiRicerca={data_target}&_={timestamp_lista}"
     
-    # timeout=10 evita che GitHub resti bloccato all'infinito se il server non risponde
     response_lista = requests.get(url_lista, headers=headers, timeout=10)
     
     if response_lista.status_code != 200:
-        # Ora se fallisce stampiamo IL VERO MOTIVO
         print(f"❌ Errore HTTP {response_lista.status_code} nel recupero della lista.")
-        print(f"Risposta del server: {response_lista.text}")
         return
 
     try:
         dati_corsi = response_lista.json()
+        print("✅ LISTA RECUPERATA CON SUCCESSO! Il server non è crashato.")
     except Exception as e:
-        print("❌ Il server ha risposto, ma non era un JSON valido:", response_lista.text)
+        print("❌ Il server ha risposto, ma non era un JSON valido.")
         return
 
     id_corso_da_prenotare = None
@@ -66,9 +63,9 @@ def prenota_piscina_test():
         response_prenota = requests.get(url_prenota, headers=headers)
         
         if response_prenota.status_code == 200:
-            print("🎉 Test riuscito! Vai a controllare sull'app.")
+            print("🎉 Test riuscito! Vai sull'app per disdire questa prenotazione di prova.")
         else:
-            print(f"❌ Errore {response_prenota.status_code} nella prenotazione: {response_prenota.text}")
+            print(f"❌ Errore {response_prenota.status_code} nella prenotazione.")
     else:
         print("❌ Nessun corso trovato a quell'ora.")
 
