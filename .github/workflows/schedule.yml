@@ -2,13 +2,10 @@ name: Prenotazione Automatica Piscina
 
 on:
   schedule:
-    # Formato Cron: Minuti, Ore, GiornoMese, Mese, GiornoSettimana
-    # I giorni della settimana vanno da 0 (Domenica) a 6 (Sabato).
-    # 2 = Martedì, 3 = Mercoledì.
-    # Ore: 06 (UTC) -> Corrisponde alle 07:00 in Italia (solare) o 08:00 (legale).
+    # Esegue il bot alle 07:00 ora italiana (06:00 UTC) ogni Martedì (2) e Mercoledì (3).
+    # Sostituisci il "6" con l'orario in cui aprono le iscrizioni (es. se aprono a mezzanotte, metti "23" del giorno prima).
     - cron: '0 6 * * 2,3'
   
-  # Questo parametro ti permette di avviare lo script a mano cliccando un pulsante su GitHub
   workflow_dispatch:
 
 jobs:
@@ -24,13 +21,8 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Installa la libreria requests
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests
+      - name: Installa librerie
+        run: pip install requests
 
       - name: Lancia lo script di prenotazione
         run: python prenota.py
-        env:
-          # Permette di passare l'ID in modo sicuro tramite i Secret di GitHub (opzionale)
-          ID_UTENTE: ${{ secrets.ID_UTENTE }}
