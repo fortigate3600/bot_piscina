@@ -1,12 +1,15 @@
 import requests
 import time
+import os
+from datetime import datetime, timedelta
 
-# --- CONFIGURAZIONE TEST A PROVA DI BOMBA ---
-# Inseriamo i dati fissi senza usare variabili dinamiche o GitHub Secrets
-ID_UTENTE = "70750"
-data_target = "20260926"  # Il sabato che avevi intercettato originariamente
-ORARIO_DESIDERATO = "10:00"
-# --------------------------------------------
+# --- CONFIGURAZIONE BOT ---
+ID_UTENTE = os.environ.get("ID_UTENTE", "70750")
+ORARIO_DESIDERATO = "19:00"
+
+# Calcola la data esatta di 7 giorni nel futuro
+data_target = (datetime.now() + timedelta(days=7)).strftime("%Y%m%d")
+# --------------------------
 
 headers = {
     "Host": "appyfit.it",
@@ -19,11 +22,10 @@ headers = {
     "Accept-Language": "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7"
 }
 
-def prenota_piscina_test():
-    print(f"🛠 TEST: Cerco i corsi per il {data_target} alle {ORARIO_DESIDERATO}...")
+def prenota_piscina():
+    print(f"🔎 Cerco i corsi per il {data_target} alle {ORARIO_DESIDERATO}...")
     timestamp_lista = int(time.time() * 1000)
     
-    # Costruiamo l'URL esattamente identico a quello che l'app aveva generato
     url_lista = f"https://appyfit.it/Api/prenota/corso/?IDCS=86&idU={ID_UTENTE}&idcategoria=12&dataDiRicerca={data_target}&_={timestamp_lista}"
     
     response_lista = requests.get(url_lista, headers=headers, timeout=10)
@@ -34,9 +36,8 @@ def prenota_piscina_test():
 
     try:
         dati_corsi = response_lista.json()
-        print("✅ LISTA RECUPERATA CON SUCCESSO! Il server non è crashato.")
     except Exception as e:
-        print("❌ Il server ha risposto, ma non era un JSON valido.")
+        print("❌ Il server non ha restituito un JSON valido (possibile errore 500 per mancanza corsi).")
         return
 
     id_corso_da_prenotare = None
@@ -49,24 +50,24 @@ def prenota_piscina_test():
             print(f"✅ Trovato slot delle {ORARIO_DESIDERATO}! Posti: {prenotati}/{massimi}")
             
             if prenotati >= massimi:
-                print("⚠️ Il corso è già pieno, test interrotto.")
+                print("⚠️ Il corso è già pieno. Niente da fare per oggi.")
                 return
             
             id_corso_da_prenotare = corso["id_Corso"]
             break
 
     if id_corso_da_prenotare:
-        print(f"🚀 Procedo con la prenotazione di test: {id_corso_da_prenotare}")
+        print(f"🚀 Procedo con la prenotazione definitiva: {id_corso_da_prenotare}")
         timestamp_prenota = int(time.time() * 1000)
         url_prenota = f"https://appyfit.it/Api/prenota/corso/?IDCS=86&idU={ID_UTENTE}&idC={id_corso_da_prenotare}&idcategoria=12&I=1&dataDiRicerca={data_target}&nameCat=Nuoto%20libero&IDMicro=30&_={timestamp_prenota}"
         
         response_prenota = requests.get(url_prenota, headers=headers)
         
         if response_prenota.status_code == 200:
-            print("🎉 Test riuscito! Vai sull'app per disdire questa prenotazione di prova.")
+            print("🎉 PRENOTAZIONE CONFERMATA per la settimana prossima!")
         else:
             print(f"❌ Errore {response_prenota.status_code} nella prenotazione.")
     else:
-        print("❌ Nessun corso trovato a quell'ora.")
+        print(f"❌ Nessun corso trovato alle {ORARIO_DESIDERATO}.")
 
-prenota_piscina_test()
+prenota_piscina()
