@@ -8,7 +8,7 @@ ID_UTENTE = os.environ.get("ID_UTENTE", "70750")
 ORARIO_DESIDERATO = "19:00"
 
 # Calcola la data esatta di 7 giorni nel futuro
-data_target = (datetime.now() + timedelta(days=7)).strftime("%Y%m%d")
+data_target = (datetime.now() + timedelta(days=6)).strftime("%Y%m%d")
 # --------------------------
 
 headers = {
