@@ -4,7 +4,7 @@ on:
   schedule:
     # Esegue il bot alle 07:00 ora italiana (06:00 UTC) ogni Martedì (2) e Mercoledì (3).
     # Sostituisci il "6" con l'orario in cui aprono le iscrizioni (es. se aprono a mezzanotte, metti "23" del giorno prima).
-    - cron: '0 6 * * 2,3'
+    - cron: '0 0 * * 3,4'
   
   workflow_dispatch:
 
