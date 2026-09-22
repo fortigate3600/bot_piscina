@@ -1,13 +1,14 @@
 import requests
 import time
 import os
+import sys # <-- Aggiunto per poter forzare l'uscita con errore
 from datetime import datetime, timedelta
 
 # --- CONFIGURAZIONE BOT ---
 ID_UTENTE = os.environ.get("ID_UTENTE", "70750")
 ORARIO_DESIDERATO = "19:00"
 
-# Calcola la data esatta di 7 giorni nel futuro
+# Calcola la data esatta di 6 giorni nel futuro (es. da Mer a Mar)
 data_target = (datetime.now() + timedelta(days=6)).strftime("%Y%m%d")
 # --------------------------
 
@@ -28,17 +29,22 @@ def prenota_piscina():
     
     url_lista = f"https://appyfit.it/Api/prenota/corso/?IDCS=86&idU={ID_UTENTE}&idcategoria=12&dataDiRicerca={data_target}&_={timestamp_lista}"
     
-    response_lista = requests.get(url_lista, headers=headers, timeout=10)
+    try:
+        response_lista = requests.get(url_lista, headers=headers, timeout=10)
+    except Exception as e:
+        # Questo blocca l'esecuzione se il server della piscina non risponde proprio (es. timeout)
+        print(f"❌ Errore di connessione al server: {e}")
+        sys.exit(1) # <-- Fa fallire l'Action di GitHub!
     
     if response_lista.status_code != 200:
         print(f"❌ Errore HTTP {response_lista.status_code} nel recupero della lista.")
-        return
+        sys.exit(1) # <-- Fa fallire l'Action di GitHub!
 
     try:
         dati_corsi = response_lista.json()
     except Exception as e:
         print("❌ Il server non ha restituito un JSON valido (possibile errore 500 per mancanza corsi).")
-        return
+        sys.exit(1) # <-- Fa fallire l'Action di GitHub!
 
     id_corso_da_prenotare = None
 
@@ -51,7 +57,7 @@ def prenota_piscina():
             
             if prenotati >= massimi:
                 print("⚠️ Il corso è già pieno. Niente da fare per oggi.")
-                return
+                sys.exit(1) # <-- Fa fallire l'Action di GitHub! (Riceverai l'email)
             
             id_corso_da_prenotare = corso["id_Corso"]
             break
@@ -61,13 +67,20 @@ def prenota_piscina():
         timestamp_prenota = int(time.time() * 1000)
         url_prenota = f"https://appyfit.it/Api/prenota/corso/?IDCS=86&idU={ID_UTENTE}&idC={id_corso_da_prenotare}&idcategoria=12&I=1&dataDiRicerca={data_target}&nameCat=Nuoto%20libero&IDMicro=30&_={timestamp_prenota}"
         
-        response_prenota = requests.get(url_prenota, headers=headers)
-        
+        try:
+            response_prenota = requests.get(url_prenota, headers=headers)
+        except Exception as e:
+            print(f"❌ Errore di rete durante la prenotazione: {e}")
+            sys.exit(1)
+
         if response_prenota.status_code == 200:
             print("🎉 PRENOTAZIONE CONFERMATA per la settimana prossima!")
+            # Qui NON mettiamo sys.exit(1), il programma finisce normalmente e GitHub vede "Success" (nessuna email)
         else:
             print(f"❌ Errore {response_prenota.status_code} nella prenotazione.")
+            sys.exit(1) # <-- Fa fallire l'Action di GitHub!
     else:
         print(f"❌ Nessun corso trovato alle {ORARIO_DESIDERATO}.")
+        sys.exit(1) # <-- Fa fallire l'Action di GitHub!
 
 prenota_piscina()
