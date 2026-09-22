@@ -2,8 +2,7 @@ name: Prenotazione Automatica Piscina
 
 on:
   schedule:
-    # Esegue il bot alle 07:00 ora italiana (06:00 UTC) ogni Martedì (2) e Mercoledì (3).
-    # Sostituisci il "6" con l'orario in cui aprono le iscrizioni (es. se aprono a mezzanotte, metti "23" del giorno prima).
+    # 'min ore+1 * * giorni'
     - cron: '0 0 * * 3,4'
   
   workflow_dispatch:
