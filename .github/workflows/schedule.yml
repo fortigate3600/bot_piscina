@@ -2,8 +2,8 @@ name: Prenotazione Automatica Piscina
 
 on:
   schedule:
-    # 'min ore+1 * * giorni'
-    - cron: '0 0 * * 3,4'
+    # 'min ore+2 * * giorni'
+    - cron: '4 23 * * 3,4'
   
   workflow_dispatch:
 
