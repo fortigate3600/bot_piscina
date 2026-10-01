@@ -1,11 +1,7 @@
 name: Prenotazione Automatica Piscina
 
 on:
-  schedule:
-    # 'min ore+2 * * giorni'
-    - cron: '1 17 * * 2,3'
-  
-  workflow_dispatch:
+  workflow_dispatch: # Permette l'avvio manuale e tramite API esterne
 
 jobs:
   esegui-bot:
